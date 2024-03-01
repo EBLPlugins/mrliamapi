@@ -1,6 +1,5 @@
 package net.mrliam2614.mrliamapi.spigot.commands;
 
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import net.mrliam2614.mrliamapi.spigot.commands.commands.AdvancedCommand;
@@ -12,20 +11,16 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 public class AdvancedCommandHandler implements CommandExecutor, TabCompleter {
-    @Getter
     private List<AdvancedCommand> commandList;
 
-    @Getter
     @Setter
     private NoArgsFunction noArgsFunc;
 
@@ -35,8 +30,12 @@ public class AdvancedCommandHandler implements CommandExecutor, TabCompleter {
      */
     public AdvancedCommandHandler(String command, JavaPlugin plugin) {
         this.commandList = new ArrayList<>();
-        plugin.getCommand(command).setExecutor(this);
-        plugin.getCommand(command).setTabCompleter(this);
+        PluginCommand cmd = plugin.getCommand(command);
+        if(cmd == null) {
+            throw new IllegalArgumentException("Command " + command + " does not exist in plugin.yml!");
+        }
+        cmd.setExecutor(this);
+        cmd.setTabCompleter(this);
     }
 
     /**
@@ -118,7 +117,7 @@ public class AdvancedCommandHandler implements CommandExecutor, TabCompleter {
 
             AdvancedCommand nextArg = null;
             if (arguments.length > 0) {
-                if (cmd.getArgs().size() > 0) {
+                if (!cmd.getArgs().isEmpty()) {
                     boolean found = false;
                     for (AdvancedCommand cmdString : cmd.getArgs()) {
                         if (cmdString instanceof CommandString) {
@@ -167,90 +166,120 @@ public class AdvancedCommandHandler implements CommandExecutor, TabCompleter {
      * @param cmd     The command
      * @param args    The arguments
      * @param argList The list of arguments
-     * @return The list of arguments
      */
-    private List<String> calcArgs(Player player, AdvancedCommand cmd, String[] args, List<String> argList) {
-        if (argList == null) {
-            argList = new ArrayList<>();
-        }
+    private void calcArgs(Player player, AdvancedCommand cmd, String[] args, List<String> argList) {
+        argList = initializeArgList(argList);
         if (cmd != null) {
-            if (cmd.getPermission() != null && !player.hasPermission(cmd.getPermission())) {
-                return argList;
+            if (!playerHasPermission(player, cmd)) {
+                return;
             }
-            String[] arguments = new String[args.length - 1];
-
-            System.arraycopy(args, 1, arguments, 0, args.length - 1);
-
-            AdvancedCommand nextArg = null;
-            if (arguments.length > 0) {
-                if (cmd.getArgs() == null) {
-                    return argList;
-                }
-                if (cmd.getArgs().size() > 0) {
-                    boolean found = false;
-                    for (AdvancedCommand cmdString : cmd.getArgs()) {
-                        if (cmdString instanceof CommandString) {
-                            found = true;
-                            if (cmd.getArgs().size() > 1) {
-                                Bukkit.getLogger().log(Level.SEVERE, "BlazeCommandString cannot be used with multiple arguments (" + cmdString.getClass().getName() + ")!");
-                                throw new IllegalArgumentException("BlazeCommandString cannot be used with multiple arguments (" + cmdString.getClass().getName() + ")!");
-                            }
-
-                            List<String> tabComplete = ((CommandString) cmdString).tabComplete(player, args);
-                            if (tabComplete == null) {
-                                Bukkit.getLogger().log(Level.SEVERE, "BlazeCommandString cannot return null! (" + cmdString.getClass().getName() + ")!");
-                                throw new IllegalArgumentException("BlazeCommandString cannot return null! (" + cmdString.getClass().getName() + ")!");
-                            }
-
-                            for (String s : tabComplete) {
-                                if (s.equalsIgnoreCase(arguments[0])) nextArg = cmdString;
-
-                            }
-                        }
-                    }
-
-                    if (!found){
-                        nextArg = cmd.getArgs().stream().filter(arg -> arg.getName().equalsIgnoreCase(arguments[0])).findAny().orElse(null);
-                        if(nextArg == null) return argList;
-                        if(!nextArg.hasPermission(player)){
-                            nextArg = null;
-                        }
-                    }
-                }
-
-            }
+            String[] arguments = getArguments(args);
+            AdvancedCommand nextArg = getNextArg(player, cmd, arguments);
             calcSubArgs(player, nextArg, arguments, argList, cmd, args);
         } else {
             argList.clear();
         }
+    }
+
+    private List<String> initializeArgList(List<String> argList) {
+        if (argList == null) {
+            argList = new ArrayList<>();
+        }
         return argList;
+    }
+
+    private boolean playerHasPermission(Player player, AdvancedCommand cmd) {
+        return cmd.getPermission() != null && player.hasPermission(cmd.getPermission());
+    }
+
+    private String[] getArguments(String[] args) {
+        String[] arguments = new String[args.length - 1];
+        System.arraycopy(args, 1, arguments, 0, args.length - 1);
+        return arguments;
+    }
+
+    private AdvancedCommand getNextArg(Player player, AdvancedCommand cmd, String[] arguments) {
+        AdvancedCommand nextArg = null;
+        if (arguments.length > 1) {
+            if (cmd.getArgs() == null) {
+                return null;
+            }
+            if (!cmd.getArgs().isEmpty()) {
+                nextArg = findNextArg(player, cmd, arguments);
+            }
+        }
+        return nextArg;
+    }
+
+    private AdvancedCommand findNextArg(Player player, AdvancedCommand cmd, String[] arguments) {
+        AdvancedCommand nextArg = null;
+        boolean found = false;
+        for (AdvancedCommand cmdString : cmd.getArgs()) {
+            if (cmdString instanceof CommandString) {
+                found = true;
+                validateCommandString(cmd, cmdString);
+                nextArg = getCommandStringArg(player, cmdString, arguments);
+            }
+        }
+        if (!found) {
+            nextArg = getArgFromStream(cmd, arguments, player);
+        }
+        return nextArg;
+    }
+
+    private void validateCommandString(AdvancedCommand cmd, AdvancedCommand cmdString) {
+        if (cmd.getArgs().size() > 1) {
+            Bukkit.getLogger().log(Level.SEVERE, "BlazeCommandString cannot be used with multiple arguments (" + cmdString.getClass().getName() + ")!");
+            throw new IllegalArgumentException("BlazeCommandString cannot be used with multiple arguments (" + cmdString.getClass().getName() + ")!");
+        }
+    }
+
+    private AdvancedCommand getCommandStringArg(Player player, AdvancedCommand cmdString, String[] arguments) {
+        AdvancedCommand nextArg = null;
+        List<String> tabComplete = ((CommandString) cmdString).tabComplete(player, arguments);
+        validateTabComplete(cmdString, tabComplete);
+        for (String s : tabComplete) {
+            if (s.equalsIgnoreCase(arguments[0])) {
+                nextArg = cmdString;
+                break;
+            }
+        }
+        return nextArg;
+    }
+
+    private void validateTabComplete(AdvancedCommand cmdString, List<String> tabComplete) {
+        if (tabComplete == null) {
+            Bukkit.getLogger().log(Level.SEVERE, "BlazeCommandString cannot return null! (" + cmdString.getClass().getName() + ")!");
+            throw new IllegalArgumentException("BlazeCommandString cannot return null! (" + cmdString.getClass().getName() + ")!");
+        }
+    }
+
+    private AdvancedCommand getArgFromStream(AdvancedCommand cmd, String[] arguments, Player player) {
+        AdvancedCommand nextArg = cmd.getArgs().stream().filter(arg -> arg.getName().equalsIgnoreCase(arguments[0])).findAny().orElse(null);
+        if (nextArg == null || !nextArg.hasPermission(player)) {
+            nextArg = null;
+        }
+        return nextArg;
     }
 
     private void calcSubArgs(Player player, AdvancedCommand nextArg, String[] arguments, List<String> argList, AdvancedCommand cmd, String[] args) {
         if (nextArg != null) {
             calcArgs(player, nextArg, arguments, argList);
         } else {
+            if (cmd.getArgs() == null || args.length == 0 || args.length > 2)
+                return;
+            addArgsToArgList(player, argList, cmd, args);
+        }
+    }
 
-            if (cmd.getArgs() == null)
-                return;
-
-            if (args.length == 0) {
-                return;
-            }
-            if (args.length > 2) {
-                return;
-            }
-            for (AdvancedCommand arg : cmd.getArgs()) {
-                if (arg instanceof CommandString) {
-                    List<String> tabComplete = ((CommandString) arg).tabComplete(player, args);
-                    if (tabComplete != null) argList.addAll(tabComplete);
-                    else {
-                        Bukkit.getLogger().log(Level.SEVERE, "The return value of tabComplete cannot be null! (" + arg.getClass().getName() + ")");
-                        throw new UnsupportedOperationException("The return value of tabComplete cannot be null! (" + arg.getClass().getName() + ")");
-                    }
-                } else {
-                    argList.add(arg.getName());
-                }
+    private void addArgsToArgList(Player player, List<String> argList, AdvancedCommand cmd, String[] args) {
+        for (AdvancedCommand arg : cmd.getArgs()) {
+            if (arg instanceof CommandString) {
+                List<String> tabComplete = ((CommandString) arg).tabComplete(player, args);
+                validateTabComplete(arg, tabComplete);
+                argList.addAll(tabComplete);
+            } else {
+                argList.add(arg.getName());
             }
         }
     }
@@ -258,45 +287,41 @@ public class AdvancedCommandHandler implements CommandExecutor, TabCompleter {
     /**
      * The tab completer from bukkit
      *
-     * @param commandSender The sender of the command
+     * @param sender The sender of the command
      * @param command       The command
-     * @param s             The label
+     * @param alias             The label
      * @param args          The arguments
      * @return The list of arguments
      */
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
-        List<String> nextArgs = new ArrayList<>();
-        if (!(commandSender instanceof Player)) {
-            return nextArgs;
+    public List<String> onTabComplete(@NonNull CommandSender sender, @NonNull Command command, @NonNull String alias, @NonNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            return null;
         }
-
-        Player player = (Player) commandSender;
-
-        if (args.length < 1) {
-            return nextArgs;
-        }
-
-        String commandName = args[0];
-        AdvancedCommand cmd = commandList.stream().filter(c -> c.getName().equalsIgnoreCase(commandName)).findAny().orElse(null);
+        List<String> argList = new ArrayList<>();
 
         if (args.length == 1) {
-            List<AdvancedCommand> allCommands = commandList.stream().filter(c -> c.getName().contains(commandName)).collect(Collectors.toList());
-            for (AdvancedCommand cmda : allCommands) {
-                nextArgs.add(cmda.getName());
+            handleFirstLevelTabCompletion(player, args, argList);
+        } else {
+            handleSubsequentLevelTabCompletion(player, args, argList);
+        }
+
+        return argList;
+    }
+
+    private void handleFirstLevelTabCompletion(Player player, String[] args, List<String> argList) {
+        for (AdvancedCommand cmd : commandList) {
+            if (cmd.getName().toLowerCase().startsWith(args[0].toLowerCase()) && cmd.hasPermission(player)) {
+                argList.add(cmd.getName());
             }
-            return nextArgs;
         }
-        if (cmd == null) {
-            return nextArgs;
-        }
-        List<String> getArgs = calcArgs(player, cmd, args, new ArrayList<>());
+    }
 
-        for (String gotArg : getArgs) {
-            if (gotArg.toLowerCase().startsWith(args[args.length - 1].toLowerCase()))
-                nextArgs.add(gotArg);
+    private void handleSubsequentLevelTabCompletion(Player player, String[] args, List<String> argList) {
+        String cmdArg = args[0];
+        AdvancedCommand cmd = commandList.stream().filter(c -> c.getName().equalsIgnoreCase(cmdArg)).findFirst().orElse(null);
+        if (cmd != null && cmd.hasPermission(player)) {
+            calcArgs(player, cmd, args, argList);
         }
-
-        return nextArgs;
     }
 }

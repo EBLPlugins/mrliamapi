@@ -1,6 +1,7 @@
 package net.mrliam2614.mrliamapi.spigot.gui.panels;
 
 import net.mrliam2614.mrliamapi.spigot.gui.items.InventoryItem;
+import net.mrliam2614.mrliamapi.spigot.gui.panels.handlers.PageableItems;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,8 @@ public class InventoryPageable {
     private int startSlot;
 
     private List<InventoryItem> items;
+
+    private PageableItems pageableItems;
 
 
     public InventoryPageable(int rows, int columns, int startSlot) {
@@ -81,6 +84,10 @@ public class InventoryPageable {
         return startSlot;
     }
 
+    public void setPageableItems(PageableItems pageableItems) {
+        this.pageableItems = pageableItems;
+    }
+
     public InventoryItem clickedItem(int slot, int page) {
         int pageableItemIndex = 0;
         forRow:
@@ -99,6 +106,10 @@ public class InventoryPageable {
         if(getPageItems(page).size() <= pageableItemIndex) return null;
 
         return getPageItems(page).get(pageableItemIndex);
+    }
+
+    public void updateItems() {
+        items = pageableItems.updateItems();
     }
 }
 

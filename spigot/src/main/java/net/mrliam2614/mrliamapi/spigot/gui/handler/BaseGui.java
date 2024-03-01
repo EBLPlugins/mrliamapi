@@ -12,6 +12,7 @@ public class BaseGui {
     private int rows;
     private boolean shared = false;
     private boolean closeable = true;
+    private boolean liveUpdate = false;
 
     private InventoryItem itemFiller;
     private InventoryPageable inventoryPageable;
@@ -41,6 +42,11 @@ public class BaseGui {
 
     public BaseGui closeable(boolean closeable) {
         this.closeable = closeable;
+        return this;
+    }
+
+    public BaseGui liveUpdate(boolean liveUpdate) {
+        this.liveUpdate = liveUpdate;
         return this;
     }
 
@@ -80,7 +86,12 @@ public class BaseGui {
         return closeable;
     }
 
+    public boolean isLiveUpdate() {
+        return liveUpdate;
+    }
+
     public InventoryPageable getInventoryPageable() {
+        inventoryPageable.updateItems();
         return inventoryPageable;
     }
 

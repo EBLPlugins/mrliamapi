@@ -1,6 +1,7 @@
 package net.mrliam2614.mrliamapi.spigot.gui.handler;
 
 import lombok.Getter;
+import net.mrliam2614.mrliamapi.spigot.gui.GuiManager;
 import net.mrliam2614.mrliamapi.spigot.gui.items.InventoryItem;
 import net.mrliam2614.mrliamapi.spigot.gui.panels.InventoryBorders;
 import net.mrliam2614.mrliamapi.spigot.gui.panels.InventoryFixed;
@@ -16,6 +17,8 @@ public class PlayerGui {
     private BaseGui baseGui;
     @Getter
     private int page;
+
+    private InventoryPageable inventoryPageable;
 
     public PlayerGui(BaseGui baseGui) {
         this.baseGui = baseGui;
@@ -33,6 +36,15 @@ public class PlayerGui {
         inventory = Bukkit.createInventory(holder, 9 * baseGui.getRows(), baseGui.getTitle());
 
         loadItems();
+        if(baseGui.isLiveUpdate()){
+            Bukkit.getScheduler().runTaskTimerAsynchronously(GuiManager.getGuiManagerInstance().getCorePlugin(), this::checkUpdate, 0, 5);
+        }
+    }
+
+    private void checkUpdate() {
+        if(inventoryPageable.hashCode() != baseGui.getInventoryPageable().hashCode()){
+            reloadItems();
+        }
     }
 
     public void reloadItems() {
@@ -63,7 +75,7 @@ public class PlayerGui {
     }
 
     private void loadPageable() {
-        InventoryPageable inventoryPageable = baseGui.getInventoryPageable();
+        inventoryPageable = baseGui.getInventoryPageable();
         if (inventoryPageable == null) return;
         List<InventoryItem> pageItems = inventoryPageable.getPageItems(page);
         for (int i = 0; i < inventoryPageable.getRows(); i++) {

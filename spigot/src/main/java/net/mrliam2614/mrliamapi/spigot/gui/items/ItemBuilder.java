@@ -1,10 +1,18 @@
 package net.mrliam2614.mrliamapi.spigot.gui.items;
 
 import net.mrliam2614.mrliamapi.utils.MrliamColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.material.MaterialData;
+import org.bukkit.util.io.BukkitObjectInputStream;
+import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
 public class ItemBuilder {
     private ItemStack itemStack;
@@ -18,6 +26,31 @@ public class ItemBuilder {
 
     public static ItemBuilder create() {
         return new ItemBuilder();
+    }
+
+    public static ItemBuilder createHead(OfflinePlayer player) {
+        ItemBuilder itemBuilder = new ItemBuilder(new ItemStack(Material.PLAYER_HEAD));
+        SkullMeta skullMeta = (SkullMeta) itemBuilder.itemStack.getItemMeta();
+        assert skullMeta != null;
+        skullMeta.setOwningPlayer(player);
+        itemBuilder.itemStack.setItemMeta(skullMeta);
+        return itemBuilder;
+    }
+
+    public static ItemBuilder createHead(String base64) {
+        ItemBuilder itemBuilder = new ItemBuilder(new ItemStack(Material.PLAYER_HEAD));
+        SkullMeta skullMeta = (SkullMeta) itemBuilder.itemStack.getItemMeta();
+        try {
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(base64));
+            BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
+            skullMeta = (SkullMeta) dataInput.readObject();
+            dataInput.close();
+            inputStream.close();
+        } catch (IOException | ClassNotFoundException e) {
+            Bukkit.getLogger().severe("Impossibile decodificare la testa del giocatore: " + e.getMessage());
+        }
+        itemBuilder.itemStack.setItemMeta(skullMeta);
+        return itemBuilder;
     }
 
     public static ItemBuilder getFrom(ItemStack itemStack) {

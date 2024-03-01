@@ -1,4 +1,4 @@
-package net.mrliam2614.mrliamapi.spigot.commands.commands;
+package net.mrliam2614.mrliamapi.commands.commands;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,19 +10,21 @@ import java.lang.annotation.Target;
 public @interface CommandMeta {
     String name();
 
-    String permission() default "";
+    String permission() default "velocitychatmanager.default";
 
     String description() default "";
 
     String[] aliases() default {};
 
-    boolean onlyPlayers() default false;
+    boolean onlyPlayers() default true;
 
-    String usage() default "";
+    String usage() default "&cYou are using the command incorrectly!";
 
     String noPermissionMessage() default "&4You do not have permission to use this command!";
 
     boolean requireArgs() default false;
 
     boolean acceptArgs() default true;
+
+    boolean enabledFromMain() default false;
 }

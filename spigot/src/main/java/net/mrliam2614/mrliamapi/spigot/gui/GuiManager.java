@@ -14,9 +14,13 @@ import java.util.HashMap;
 public class GuiManager {
     @Getter
     private static GuiManager guiManagerInstance;
+    @Getter
+    private JavaPlugin corePlugin;
+
     private HashMap<Player, PlayerGui> playerGui;
     public GuiManager(JavaPlugin plugin) {
         this.playerGui = new HashMap<>();
+        this.corePlugin = plugin;
         guiManagerInstance = this;
         plugin.getServer().getPluginManager().registerEvents(new InventoryListener(), plugin);
     }
