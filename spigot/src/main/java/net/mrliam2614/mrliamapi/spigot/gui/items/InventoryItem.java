@@ -50,9 +50,13 @@ public class InventoryItem {
         return displayCondition == null || displayCondition.shouldDisplay(gui);
     }
 
-    public void updateDisplay(PlayerGui gui) {
+    public boolean updateDisplay(PlayerGui gui) {
         if (displayInfo != null) {
+            int preHash = itemStack.hashCode();
             displayInfo.displayInfo(gui, this);
+            int postHas = itemStack.hashCode();
+            return preHash != postHas;
         }
+        return false;
     }
 }

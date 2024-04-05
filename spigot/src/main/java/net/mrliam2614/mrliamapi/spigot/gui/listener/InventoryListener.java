@@ -27,8 +27,10 @@ public class InventoryListener implements Listener {
         if (event.getClickedInventory() == null)
             return;
 
-        if (event.getClickedInventory().getHolder() instanceof Player)
+        if (event.getClickedInventory().getHolder() instanceof Player) {
+            guiManager.getPlayerGui(p).clickedOutsideInventoryItem(event);
             return;
+        }
 
         ItemClick itemClick = guiManager.click(p, event.getSlot());
         if (itemClick != null) {

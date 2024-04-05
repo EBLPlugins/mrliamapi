@@ -1,12 +1,17 @@
 package net.mrliam2614.mrliamapi.spigot.gui.handler;
 
+import lombok.Getter;
 import net.mrliam2614.mrliamapi.commons.exceptions.BadInventoryConfiguration;
 import net.mrliam2614.mrliamapi.spigot.gui.items.InventoryItem;
+import net.mrliam2614.mrliamapi.spigot.gui.items.ItemClick;
+import net.mrliam2614.mrliamapi.spigot.gui.panels.EmptyInventoryPageable;
 import net.mrliam2614.mrliamapi.spigot.gui.panels.InventoryBorders;
 import net.mrliam2614.mrliamapi.spigot.gui.panels.InventoryFixed;
 import net.mrliam2614.mrliamapi.spigot.gui.panels.InventoryPageable;
 import net.mrliam2614.mrliamapi.utils.MrliamColor;
+import org.bukkit.event.inventory.InventoryClickEvent;
 
+@Getter
 public class BaseGui {
     private String title;
     private int rows;
@@ -19,6 +24,8 @@ public class BaseGui {
     private InventoryBorders inventoryBorders;
     private InventoryFixed inventoryFixed;
 
+    private ItemClick outsideClick;
+
     private BaseGui(int rows) {
         this.rows = rows;
         if (rows < 1 || rows > 6) {
@@ -27,7 +34,9 @@ public class BaseGui {
     }
 
     public static BaseGui create(int rows) {
-        return new BaseGui(rows);
+        BaseGui gui = new BaseGui(rows);
+        gui = gui.inventoryPageable(new EmptyInventoryPageable());
+        return gui;
     }
 
     public BaseGui title(String title) {
@@ -51,7 +60,8 @@ public class BaseGui {
     }
 
     public BaseGui inventoryPageable(InventoryPageable inventoryPageable) {
-        this.inventoryPageable = inventoryPageable;
+        this.inventoryPageable =
+                (inventoryPageable != null) ? inventoryPageable : new EmptyInventoryPageable();
         return this;
     }
 
@@ -70,40 +80,21 @@ public class BaseGui {
         return this;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public int getRows() {
-        return rows;
-    }
-
-    public boolean isShared() {
-        return shared;
-    }
-
-    public boolean isCloseable() {
-        return closeable;
-    }
-
-    public boolean isLiveUpdate() {
-        return liveUpdate;
+    public BaseGui outsideClick(ItemClick itemClick) {
+        outsideClick = itemClick;
+        return this;
     }
 
     public InventoryPageable getInventoryPageable() {
+        inventoryPageable =
+                (inventoryPageable != null) ? inventoryPageable : new EmptyInventoryPageable();
         inventoryPageable.updateItems();
         return inventoryPageable;
     }
 
-    public InventoryBorders getInventoryBorders() {
-        return inventoryBorders;
+    protected void clickedOutsideInventoryItem(InventoryClickEvent event) {
+        if (outsideClick != null)
+            outsideClick.onClick(event, null);
     }
 
-    public InventoryFixed getInventoryFixed() {
-        return inventoryFixed;
-    }
-
-    public InventoryItem getItemFiller() {
-        return itemFiller;
-    }
 }

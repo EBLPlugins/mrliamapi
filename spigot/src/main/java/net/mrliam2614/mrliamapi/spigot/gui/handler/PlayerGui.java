@@ -1,6 +1,9 @@
 package net.mrliam2614.mrliamapi.spigot.gui.handler;
 
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.TextColor;
 import net.mrliam2614.mrliamapi.spigot.gui.GuiManager;
 import net.mrliam2614.mrliamapi.spigot.gui.items.InventoryItem;
 import net.mrliam2614.mrliamapi.spigot.gui.panels.InventoryBorders;
@@ -8,15 +11,19 @@ import net.mrliam2614.mrliamapi.spigot.gui.panels.InventoryFixed;
 import net.mrliam2614.mrliamapi.spigot.gui.panels.InventoryPageable;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 
 import java.util.List;
+import java.util.Objects;
 
 public class PlayerGui {
     Inventory inventory;
     private BaseGui baseGui;
     @Getter
     private int page;
+
+    private int taskID;
 
     private InventoryPageable inventoryPageable;
 
@@ -37,14 +44,26 @@ public class PlayerGui {
 
         loadItems();
         if(baseGui.isLiveUpdate()){
-            Bukkit.getScheduler().runTaskTimerAsynchronously(GuiManager.getGuiManagerInstance().getCorePlugin(), this::checkUpdate, 0, 5);
+            taskID = Bukkit.getScheduler().runTaskTimerAsynchronously(GuiManager.getGuiManagerInstance().getCorePlugin(), () -> {
+                if (inventory.getViewers().isEmpty()) {
+                    Bukkit.getScheduler().cancelTask(taskID);
+                }
+                checkUpdate();
+            }, 0, 5).getTaskId();
         }
     }
 
     private void checkUpdate() {
+        reloadFixed();
         if(inventoryPageable.hashCode() != baseGui.getInventoryPageable().hashCode()){
-            reloadItems();
+            loadPageable();
+            return;
         }
+        if (!Objects.equals(inventoryPageable.objectHash(), baseGui.getInventoryPageable().objectHash())) {
+            loadPageable();
+            return;
+        }
+        baseGui.getInventoryPageable().updateItems();
     }
 
     public void reloadItems() {
@@ -76,6 +95,7 @@ public class PlayerGui {
 
     private void loadPageable() {
         inventoryPageable = baseGui.getInventoryPageable();
+        inventoryPageable.updateItems();
         if (inventoryPageable == null) return;
         List<InventoryItem> pageItems = inventoryPageable.getPageItems(page);
         for (int i = 0; i < inventoryPageable.getRows(); i++) {
@@ -84,6 +104,7 @@ public class PlayerGui {
                 int index = (i * inventoryPageable.getColumns()) + j;
                 InventoryItem item = index < pageItems.size() ? pageItems.get(index) : null;
                 if (item == null) {
+                    if (inventory.getItem(slot) == null) continue;
                     inventory.setItem(slot, null);
                     continue;
                 }
@@ -92,6 +113,7 @@ public class PlayerGui {
                 boolean shouldDisplay = item.shouldDisplay(this);
                 if (shouldDisplay) {
                     item.updateDisplay(this);
+                    if (inventory.getItem(slot) == item.getItemStack()) continue;
                     inventory.setItem(slot, item.getItemStack());
                 }
             }
@@ -101,7 +123,7 @@ public class PlayerGui {
     private void loadFixed() {
         InventoryFixed inventoryFixed = baseGui.getInventoryFixed();
         if (inventoryFixed == null) return;
-        for (int i = 0; i < inventory.getSize(); i++) {
+        for (int i : inventoryFixed.itemSlots()) {
             InventoryItem item = inventoryFixed.getItem(i);
             if (item == null) continue;
 
@@ -109,6 +131,21 @@ public class PlayerGui {
             if (shouldDisplay && !isInsidePageableArea(i)) {
                 item.updateDisplay(this);
                 inventory.setItem(i, item.getItemStack());
+            }
+        }
+    }
+
+    private void reloadFixed() {
+        InventoryFixed inventoryFixed = baseGui.getInventoryFixed();
+        if (inventoryFixed == null) return;
+        for (int i : inventoryFixed.itemSlots()) {
+            InventoryItem item = inventoryFixed.getItem(i);
+            if (item == null) continue;
+
+            boolean shouldDisplay = item.shouldDisplay(this);
+            if (shouldDisplay && !isInsidePageableArea(i)) {
+                if (item.updateDisplay(this))
+                    inventory.setItem(i, item.getItemStack());
             }
         }
     }
@@ -186,6 +223,10 @@ public class PlayerGui {
             }
         }
         return null;
+    }
+
+    public void clickedOutsideInventoryItem(InventoryClickEvent event) {
+        baseGui.clickedOutsideInventoryItem(event);
     }
 
     public Inventory getInventory() {

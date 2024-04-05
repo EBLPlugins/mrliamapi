@@ -3,6 +3,8 @@ package net.mrliam2614.mrliamapi.spigot.gui.panels;
 import net.mrliam2614.mrliamapi.spigot.gui.items.InventoryItem;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 public class InventoryFixed {
     private HashMap<Integer, InventoryItem> items;
@@ -32,5 +34,9 @@ public class InventoryFixed {
 
     private HashMap<Integer, InventoryItem> getItems() {
         return this.items;
+    }
+
+    public Set<Integer> itemSlots(){
+        return items.keySet();
     }
 }

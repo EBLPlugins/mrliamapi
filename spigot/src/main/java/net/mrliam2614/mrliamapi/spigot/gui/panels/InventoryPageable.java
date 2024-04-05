@@ -1,9 +1,12 @@
 package net.mrliam2614.mrliamapi.spigot.gui.panels;
 
+import lombok.Getter;
+import lombok.Setter;
 import net.mrliam2614.mrliamapi.spigot.gui.items.InventoryItem;
 import net.mrliam2614.mrliamapi.spigot.gui.panels.handlers.PageableItems;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class InventoryPageable {
@@ -14,6 +17,7 @@ public class InventoryPageable {
 
     private List<InventoryItem> items;
 
+    @Setter
     private PageableItems pageableItems;
 
 
@@ -22,30 +26,6 @@ public class InventoryPageable {
         this.columns = columns;
         this.startSlot = startSlot;
         items = new ArrayList<>();
-    }
-
-    public void addItem(InventoryItem item) {
-        items.add(item);
-    }
-
-    public void removeItem(InventoryItem item) {
-        items.remove(item);
-    }
-
-    public void removeItem(int index) {
-        items.remove(index);
-    }
-
-    public void clearItems() {
-        items.clear();
-    }
-
-    public void setItems(List<InventoryItem> items) {
-        this.items = items;
-    }
-
-    public void insertItem(int index, InventoryItem item) {
-        items.add(index, item);
     }
 
     public List<InventoryItem> getPageItems(int page) {
@@ -72,6 +52,16 @@ public class InventoryPageable {
         return (int) Math.ceil((double) items.size() / itemsPerPage);
     }
 
+    public InventoryPageable addItem(InventoryItem item) {
+        this.items.add(item);
+        return this;
+    }
+
+    public InventoryPageable clearItems() {
+        this.items.clear();
+        return this;
+    }
+
     public int getRows() {
         return rows;
     }
@@ -82,10 +72,6 @@ public class InventoryPageable {
 
     public int getStartSlot() {
         return startSlot;
-    }
-
-    public void setPageableItems(PageableItems pageableItems) {
-        this.pageableItems = pageableItems;
     }
 
     public InventoryItem clickedItem(int slot, int page) {
@@ -109,7 +95,16 @@ public class InventoryPageable {
     }
 
     public void updateItems() {
+        if(pageableItems == null) return;
         items = pageableItems.updateItems();
+    }
+
+    public String objectHash(){
+        int itemsHash = items.hashCode();
+        int itemSize = items.size();
+        int lastItem = (items.size() > 0) ? items.get(items.size()-1).hashCode() : 0;
+
+        return ""+itemsHash+itemSize+lastItem;
     }
 }
 

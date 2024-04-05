@@ -1,5 +1,8 @@
 package net.mrliam2614.mrliamapi.spigot.gui.items;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
+import net.mrliam2614.mrliamapi.spigot.messages.Logger;
 import net.mrliam2614.mrliamapi.utils.MrliamColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -13,12 +16,16 @@ import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Base64;
+import java.util.UUID;
+import java.util.logging.Level;
 
 public class ItemBuilder {
     private ItemStack itemStack;
 
-    public ItemBuilder() {
-    }
+    private ItemBuilder() {}
 
     private ItemBuilder(ItemStack itemStack) {
         this.itemStack = itemStack;
@@ -41,13 +48,16 @@ public class ItemBuilder {
         ItemBuilder itemBuilder = new ItemBuilder(new ItemStack(Material.PLAYER_HEAD));
         SkullMeta skullMeta = (SkullMeta) itemBuilder.itemStack.getItemMeta();
         try {
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(base64));
-            BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
-            skullMeta = (SkullMeta) dataInput.readObject();
-            dataInput.close();
-            inputStream.close();
-        } catch (IOException | ClassNotFoundException e) {
-            Bukkit.getLogger().severe("Impossibile decodificare la testa del giocatore: " + e.getMessage());
+            Method setProfile = skullMeta.getClass().getDeclaredMethod("setProfile", GameProfile.class);
+            setProfile.setAccessible(true);
+
+            GameProfile profile = new GameProfile(UUID.randomUUID(), "skull-texture");
+            profile.getProperties().put("textures", new Property("textures", base64));
+
+            setProfile.invoke(skullMeta, profile);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            Logger.error("There was a severe internal reflection error when attempting to set the skin of a player skull via base64!");
+            e.printStackTrace();
         }
         itemBuilder.itemStack.setItemMeta(skullMeta);
         return itemBuilder;
@@ -56,11 +66,20 @@ public class ItemBuilder {
     public static ItemBuilder getFrom(ItemStack itemStack) {
         return new ItemBuilder(itemStack.clone());
     }
+    public static ItemBuilder createEmpty(){
+        ItemBuilder item = new ItemBuilder();
+        item.setItem(Material.BARRIER);
+        item.setDisplayName("");
+        item.setLore("");
+
+        return item;
+    }
 
     public ItemBuilder setItem(Material material) {
         this.itemStack = new ItemStack(material);
         return this;
     }
+
 
     public ItemBuilder setItemAmount(int amount) {
         this.itemStack.setAmount(amount);
