@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Getter
-public abstract class BlazeCommand implements CommandInterface {
+public abstract class AdvancedCommand implements CommandInterface {
     private String name;
     @Setter
     private String permission;
@@ -21,7 +21,7 @@ public abstract class BlazeCommand implements CommandInterface {
 
     private String[] aliases;
 
-    private List<BlazeCommand> args;
+    private List<AdvancedCommand> args;
     @Setter
     private String usage;
     private boolean requireArgs;
@@ -31,7 +31,7 @@ public abstract class BlazeCommand implements CommandInterface {
 
     private boolean enabledFromMain;
 
-    protected BlazeCommand() {
+    protected AdvancedCommand() {
         loadProps();
         init();
     }
@@ -74,7 +74,7 @@ public abstract class BlazeCommand implements CommandInterface {
      * @param command The argument - sub command to add
      */
     @Override
-    public final void addArg(BlazeCommand command) {
+    public final void addArg(AdvancedCommand command) {
         if (args == null) {
             args = new ArrayList<>();
         }
@@ -87,7 +87,7 @@ public abstract class BlazeCommand implements CommandInterface {
      * @param commands The arguments - sub commands to add
      */
     @Override
-    public final void addArgs(BlazeCommand... commands) {
+    public final void addArgs(AdvancedCommand... commands) {
         if (args == null) {
             args = new ArrayList<>();
         }
@@ -102,8 +102,8 @@ public abstract class BlazeCommand implements CommandInterface {
      * @return The sub command
      */
     @Override
-    public final BlazeCommand getArg(String name) {
-        for (BlazeCommand command : args) {
+    public final AdvancedCommand getArg(String name) {
+        for (AdvancedCommand command : args) {
             if (command.getName().equalsIgnoreCase(name)) {
                 return command;
             }
@@ -117,7 +117,7 @@ public abstract class BlazeCommand implements CommandInterface {
      * @return The sub commands
      */
     @Override
-    public final List<BlazeCommand> getArgs() {
+    public final List<AdvancedCommand> getArgs() {
         return args;
     }
 

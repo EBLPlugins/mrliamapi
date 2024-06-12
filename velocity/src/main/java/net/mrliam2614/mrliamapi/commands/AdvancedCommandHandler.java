@@ -6,19 +6,19 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import net.mrliam2614.mrliamapi.commands.commands.BlazeCommand;
-import net.mrliam2614.mrliamapi.commands.commands.BlazeCommandString;
+import net.mrliam2614.mrliamapi.commands.commands.AdvancedCommand;
+import net.mrliam2614.mrliamapi.commands.commands.CommandString;
 import net.mrliam2614.mrliamapi.commands.commands.NoArgsFunction;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BlazeCommandHandler extends BlazeCommand {
+public class AdvancedCommandHandler extends AdvancedCommand {
     @Getter
-    public static BlazeCommandHandler instance;
+    public static AdvancedCommandHandler instance;
     @Getter
-    private final List<BlazeCommand> commandList;
+    private final List<AdvancedCommand> commandList;
 
     @Getter
     @Setter
@@ -31,7 +31,7 @@ public class BlazeCommandHandler extends BlazeCommand {
     /**
      *
      */
-    public BlazeCommandHandler(Logger logger, ProxyServer proxy, String permission, String commandName, String... aliases) {
+    public AdvancedCommandHandler(Logger logger, ProxyServer proxy, String permission, String commandName, String... aliases) {
         instance = this;
         this.logger = logger;
         this.proxy = proxy;
@@ -45,7 +45,7 @@ public class BlazeCommandHandler extends BlazeCommand {
      * @param command The command to register
      *                This will register the command and all of its aliases
      */
-    public void registerCommand(BlazeCommand command) {
+    public void registerCommand(AdvancedCommand command) {
         commandList.add(command);
         if (command.getAliases().length > 0) {
             String[] subAliases = new String[command.getAliases().length - 1];
@@ -68,7 +68,7 @@ public class BlazeCommandHandler extends BlazeCommand {
             }
 
             String cmdArg = args[0];
-            BlazeCommand cmd = commandList.stream().filter(c -> c.getName().equalsIgnoreCase(cmdArg)).findFirst().orElse(null);
+            AdvancedCommand cmd = commandList.stream().filter(c -> c.getName().equalsIgnoreCase(cmdArg)).findFirst().orElse(null);
 
             if (!(sender instanceof Player)) {
                 assert cmd != null;
@@ -91,7 +91,7 @@ public class BlazeCommandHandler extends BlazeCommand {
      * @param cmd    The command
      * @param args   The arguments
      */
-    private void calcCommand(CommandSource sender, BlazeCommand cmd, String[] args, boolean isMain) {
+    private void calcCommand(CommandSource sender, AdvancedCommand cmd, String[] args, boolean isMain) {
         if (cmd != null) {
             if (cmd.getPermission() != null && !cmd.hasPermission(sender)) {
 
@@ -106,15 +106,15 @@ public class BlazeCommandHandler extends BlazeCommand {
                 System.arraycopy(args, 1, arguments, 0, args.length - 1);
             }
 
-            BlazeCommand nextArg = null;
+            AdvancedCommand nextArg = null;
             if (arguments.length > 0) {
                 if (!cmd.getArgs().isEmpty()) {
                     boolean found = false;
-                    for (BlazeCommand cmdString : cmd.getArgs()) {
-                        if (cmdString instanceof BlazeCommandString) {
+                    for (AdvancedCommand cmdString : cmd.getArgs()) {
+                        if (cmdString instanceof CommandString) {
                             found = true;
 
-                            List<String> tabComplete = ((BlazeCommandString) cmdString).tabComplete(sender, args);
+                            List<String> tabComplete = ((CommandString) cmdString).tabComplete(sender, args);
                             if (tabComplete == null)
                                 throw new IllegalArgumentException("BlazeCommandString cannot return null! (" + cmdString.getClass().getName() + ")!");
 
@@ -165,7 +165,7 @@ public class BlazeCommandHandler extends BlazeCommand {
      * @param argList The list of arguments
      * @return The list of arguments
      */
-    public List<String> calcArgs(Player player, BlazeCommand cmd, String[] args, List<String> argList) {
+    public List<String> calcArgs(Player player, AdvancedCommand cmd, String[] args, List<String> argList) {
         if (argList == null) {
             argList = new ArrayList<>();
         }
@@ -177,18 +177,18 @@ public class BlazeCommandHandler extends BlazeCommand {
 
             System.arraycopy(args, 1, arguments, 0, args.length - 1);
 
-            BlazeCommand nextArg = null;
+            AdvancedCommand nextArg = null;
             if (arguments.length > 0) {
                 if (cmd.getArgs() == null) {
                     return argList;
                 }
                 if (!cmd.getArgs().isEmpty()) {
                     boolean found = false;
-                    for (BlazeCommand cmdString : cmd.getArgs()) {
-                        if (cmdString instanceof BlazeCommandString) {
+                    for (AdvancedCommand cmdString : cmd.getArgs()) {
+                        if (cmdString instanceof CommandString) {
                             found = true;
 
-                            List<String> tabComplete = ((BlazeCommandString) cmdString).tabComplete(player, args);
+                            List<String> tabComplete = ((CommandString) cmdString).tabComplete(player, args);
                             if (tabComplete == null) {
                                 logger.error("BlazeCommandString cannot return null! (" + cmdString.getClass().getName() + ")!");
                                 throw new IllegalArgumentException("BlazeCommandString cannot return null! (" + cmdString.getClass().getName() + ")!");
@@ -216,7 +216,7 @@ public class BlazeCommandHandler extends BlazeCommand {
         return argList;
     }
 
-    private void calcSubArgs(Player player, BlazeCommand nextArg, String[] arguments, List<String> argList, BlazeCommand cmd, String[] args) {
+    private void calcSubArgs(Player player, AdvancedCommand nextArg, String[] arguments, List<String> argList, AdvancedCommand cmd, String[] args) {
         if (nextArg != null) {
             calcArgs(player, nextArg, arguments, argList);
         } else {
@@ -230,9 +230,9 @@ public class BlazeCommandHandler extends BlazeCommand {
             if (args.length > 2) {
                 return;
             }
-            for (BlazeCommand arg : cmd.getArgs()) {
-                if (arg instanceof BlazeCommandString) {
-                    List<String> tabComplete = ((BlazeCommandString) arg).tabComplete(player, args);
+            for (AdvancedCommand arg : cmd.getArgs()) {
+                if (arg instanceof CommandString) {
+                    List<String> tabComplete = ((CommandString) arg).tabComplete(player, args);
                     if (tabComplete != null) argList.addAll(tabComplete);
                     else {
                         logger.error("The return value of tabComplete cannot be null! (" + arg.getClass().getName() + ")");
@@ -260,10 +260,10 @@ public class BlazeCommandHandler extends BlazeCommand {
         }
 
         if (args.length < 1) {
-            for (BlazeCommand bc : commandList) {
-                if (bc instanceof BlazeCommandString) {
+            for (AdvancedCommand bc : commandList) {
+                if (bc instanceof CommandString) {
                     if (player.hasPermission(bc.getPermission()))
-                        return ((BlazeCommandString) bc).tabComplete(invocation.source(), invocation.arguments());
+                        return ((CommandString) bc).tabComplete(invocation.source(), invocation.arguments());
                 }
                 if (bc.isEnabledFromMain())
                     if (player.hasPermission(bc.getPermission()))
@@ -273,20 +273,20 @@ public class BlazeCommandHandler extends BlazeCommand {
         }
 
         if (args.length == 1) {
-            for (BlazeCommand bc : getArgs()) {
-                if (bc instanceof BlazeCommandString) {
+            for (AdvancedCommand bc : getArgs()) {
+                if (bc instanceof CommandString) {
                     if (player.hasPermission(bc.getPermission()))
-                        return ((BlazeCommandString) bc).tabComplete(invocation.source(), invocation.arguments());
+                        return ((CommandString) bc).tabComplete(invocation.source(), invocation.arguments());
                 }
             }
         }
 
         String commandName = args[0];
-        BlazeCommand cmd = commandList.stream().filter(c -> c.getName().equalsIgnoreCase(commandName)).findAny().orElse(null);
+        AdvancedCommand cmd = commandList.stream().filter(c -> c.getName().equalsIgnoreCase(commandName)).findAny().orElse(null);
 
         if (args.length == 1) {
-            List<BlazeCommand> allCommands = commandList.stream().filter(c -> c.getName().contains(commandName)).toList();
-            for (BlazeCommand cmda : allCommands) {
+            List<AdvancedCommand> allCommands = commandList.stream().filter(c -> c.getName().contains(commandName)).toList();
+            for (AdvancedCommand cmda : allCommands) {
                 if (cmda.isEnabledFromMain())
                     if (player.hasPermission(cmda.getPermission()))
                         nextArgs.add(cmda.getName());

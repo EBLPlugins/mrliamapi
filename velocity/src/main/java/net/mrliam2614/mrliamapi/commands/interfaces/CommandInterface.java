@@ -4,9 +4,9 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
-import net.mrliam2614.mrliamapi.commands.BlazeCommandHandler;
-import net.mrliam2614.mrliamapi.commands.commands.BlazeCommand;
-import net.mrliam2614.mrliamapi.commands.commands.BlazeCommandString;
+import net.mrliam2614.mrliamapi.commands.AdvancedCommandHandler;
+import net.mrliam2614.mrliamapi.commands.commands.AdvancedCommand;
+import net.mrliam2614.mrliamapi.commands.commands.CommandString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,10 +38,10 @@ public interface CommandInterface extends SimpleCommand {
         Player player = (Player) commandSender;
 
         if (args.length < 1) {
-            for (BlazeCommand bc : getArgs()) {
-                if (bc instanceof BlazeCommandString) {
+            for (AdvancedCommand bc : getArgs()) {
+                if (bc instanceof CommandString) {
                     if(player.hasPermission(bc.getPermission()))
-                        return ((BlazeCommandString) bc).tabComplete(invocation.source(), invocation.arguments());
+                        return ((CommandString) bc).tabComplete(invocation.source(), invocation.arguments());
                 }
                 if(player.hasPermission(bc.getPermission()))
                     nextArgs.add(bc.getName());
@@ -50,19 +50,19 @@ public interface CommandInterface extends SimpleCommand {
         }
 
         if (args.length == 1) {
-            for (BlazeCommand bc : getArgs()) {
-                if (bc instanceof BlazeCommandString) {
+            for (AdvancedCommand bc : getArgs()) {
+                if (bc instanceof CommandString) {
                     if(player.hasPermission(bc.getPermission()))
-                        return ((BlazeCommandString) bc).tabComplete(invocation.source(), invocation.arguments());
+                        return ((CommandString) bc).tabComplete(invocation.source(), invocation.arguments());
                 }
             }
         }
 
         String commandName = args[0];
-        BlazeCommand cmd = getArgs().stream().filter(c -> c.getName().equalsIgnoreCase(commandName)).findAny().orElse(null);
+        AdvancedCommand cmd = getArgs().stream().filter(c -> c.getName().equalsIgnoreCase(commandName)).findAny().orElse(null);
         if (args.length == 1) {
-            List<BlazeCommand> allCommands = getArgs().stream().filter(c -> c.getName().contains(commandName)).collect(Collectors.toList());
-            for (BlazeCommand cmda : allCommands) {
+            List<AdvancedCommand> allCommands = getArgs().stream().filter(c -> c.getName().contains(commandName)).collect(Collectors.toList());
+            for (AdvancedCommand cmda : allCommands) {
                 if(player.hasPermission(cmda.getPermission()))
                     nextArgs.add(cmda.getName());
             }
@@ -71,7 +71,7 @@ public interface CommandInterface extends SimpleCommand {
         if (cmd == null) {
             return nextArgs;
         }
-        List<String> getArgs = BlazeCommandHandler.getInstance().calcArgs(player, cmd, args, new ArrayList<>());
+        List<String> getArgs = AdvancedCommandHandler.getInstance().calcArgs(player, cmd, args, new ArrayList<>());
 
         for (String gotArg : getArgs) {
             if (gotArg.toLowerCase().startsWith(args[args.length - 1].toLowerCase()))
@@ -83,13 +83,13 @@ public interface CommandInterface extends SimpleCommand {
 
     void execute(CommandSource sender, String[] args);
 
-    void addArg(BlazeCommand command);
+    void addArg(AdvancedCommand command);
 
-    void addArgs(BlazeCommand... commands);
+    void addArgs(AdvancedCommand... commands);
 
-    BlazeCommand getArg(String name);
+    AdvancedCommand getArg(String name);
 
-    List<BlazeCommand> getArgs();
+    List<AdvancedCommand> getArgs();
 
     boolean hasArgs();
 

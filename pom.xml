@@ -14,6 +14,13 @@
         <module>velocity</module>
     </modules>
 
+    <distributionManagement>
+        <repository>
+            <id>eblcraft-central</id>
+            <url>http://mvnrepo.eblcraft.it/artifactory/mrliamapi</url>
+        </repository>
+    </distributionManagement>
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
