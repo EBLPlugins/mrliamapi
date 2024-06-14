@@ -47,7 +47,10 @@ public interface CommandInterface extends SimpleCommand {
                 }
             }
 
-            calcCommand(sender, cmd, args, false);
+            String[] newArgs = new String[args.length -1];
+            System.arraycopy(args, 1, newArgs, 0, newArgs.length);
+
+            calcCommand(sender, cmd, newArgs, false);
         } else {
             sender.sendMessage(Component.text("§4You do not have permission to execute this command!"));
         }
