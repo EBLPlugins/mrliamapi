@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 public @interface CommandMeta {
     String name();
 
-    String permission() default "velocitychatmanager.default";
+    String permission() default "";
 
     String description() default "";
 
