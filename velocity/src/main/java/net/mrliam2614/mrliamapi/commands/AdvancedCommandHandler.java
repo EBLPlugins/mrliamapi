@@ -32,6 +32,7 @@ public class AdvancedCommandHandler extends AdvancedCommand {
      *
      */
     public AdvancedCommandHandler(Logger logger, ProxyServer proxy, String permission, String commandName, String... aliases) {
+        super();
         instance = this;
         this.logger = logger;
         this.proxy = proxy;
@@ -41,16 +42,27 @@ public class AdvancedCommandHandler extends AdvancedCommand {
         this.proxy.getCommandManager().register(commandName, this, aliases);
     }
 
+    public AdvancedCommandHandler(Logger logger, ProxyServer proxy, AdvancedCommand command) {
+        super();
+        instance = this;
+        this.logger = logger;
+        this.proxy = proxy;
+        this.commandList = new ArrayList<>();
+        setPermission(command.getPermission());
+
+        this.proxy.getCommandManager().register(command.getName(), this, command.getAliases());
+    }
+
     /**
      * @param command The command to register
      *                This will register the command and all of its aliases
      */
     public void registerCommand(AdvancedCommand command) {
-        this.commandList.add(command);
+        commandList.add(command);
         if(command.isEnabledFromMain()){
             this.addArg(command);
         }else{
-            this.proxy.getCommandManager().register(command.getName(), this, command.getAliases());
+            this.proxy.getCommandManager().register(command.getName(), command, command.getAliases());
         }
     }
 

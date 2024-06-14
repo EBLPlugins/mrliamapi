@@ -44,6 +44,8 @@ public abstract class AdvancedCommand implements CommandInterface {
      * Load the properties from the annotation
      */
     private void loadProps() {
+        this.args = new ArrayList<>();
+
         CommandMeta commandMeta = this.getClass().getAnnotation(CommandMeta.class);
 
         if (commandMeta == null) {
@@ -60,8 +62,6 @@ public abstract class AdvancedCommand implements CommandInterface {
         this.noPermissionMessage = commandMeta.noPermissionMessage();
         this.aliases = commandMeta.aliases();
         this.enabledFromMain = commandMeta.enabledFromMain();
-
-        this.args = new ArrayList<>();
 
         if (this.name == null) {
             throw new IllegalArgumentException("Command name cannot be null!");
