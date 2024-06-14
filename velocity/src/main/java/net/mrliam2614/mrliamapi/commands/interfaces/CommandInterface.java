@@ -65,7 +65,10 @@ public interface CommandInterface extends SimpleCommand {
      * @param args   The arguments
      */
     default void calcCommand(CommandSource sender, AdvancedCommand cmd, String[] args, boolean isMain) {
-        if (cmd == null) return;
+        if (cmd == null) {
+            sender.sendMessage(Component.text(cmd.getUsage().replaceAll("&", "§")));
+            return;
+        }
 
         if (!cmd.hasPermission(sender)) {
             sender.sendMessage(Component.text(cmd.getNoPermissionMessage().replaceAll("&", "§")));
@@ -73,7 +76,7 @@ public interface CommandInterface extends SimpleCommand {
         }
 
         String[] arguments;
-        if (args.length == 1) {
+        if (args.length <= 1) {
             arguments = new String[0];
         } else {
             arguments = new String[args.length - 1];
