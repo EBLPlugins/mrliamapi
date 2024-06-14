@@ -68,6 +68,13 @@ public abstract class AdvancedCommand implements CommandInterface {
         }
     }
 
+
+    @Override
+    public boolean isArg(String fromArg){
+        //If any of args name or aliases matches return true
+        return args.stream().anyMatch(arg -> arg.getName().equalsIgnoreCase(fromArg) || Arrays.stream(arg.getAliases()).anyMatch(alias -> alias.equalsIgnoreCase(fromArg)));
+    }
+
     /**
      * Add a sub command to this command
      *

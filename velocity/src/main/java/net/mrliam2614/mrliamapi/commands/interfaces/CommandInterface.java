@@ -3,14 +3,10 @@ package net.mrliam2614.mrliamapi.commands.interfaces;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
-import lombok.Getter;
-import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.mrliam2614.mrliamapi.commands.AdvancedCommandHandler;
 import net.mrliam2614.mrliamapi.commands.commands.AdvancedCommand;
 import net.mrliam2614.mrliamapi.commands.commands.CommandString;
-import net.mrliam2614.mrliamapi.commands.commands.NoArgsFunction;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +29,8 @@ public interface CommandInterface extends SimpleCommand {
             }
 
             String cmdArg = args[0];
+            //TODO Implementare funzionalità agli alias degli args
+            // AdvancedCommand cmd = getArgs().stream().filter(c -> c.isArg(cmdArg)).findFirst().orElse(null);
             AdvancedCommand cmd = getArgs().stream().filter(c -> c.getName().equalsIgnoreCase(cmdArg)).findFirst().orElse(null);
 
             if(cmd == null) {
@@ -189,6 +187,7 @@ public interface CommandInterface extends SimpleCommand {
 
         return nextArgs;
     }
+    boolean isArg(String fromArg);
 
     void execute(CommandSource sender, String[] args);
 
