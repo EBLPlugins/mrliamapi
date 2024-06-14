@@ -170,7 +170,7 @@ public class AdvancedCommandHandler implements CommandExecutor, TabCompleter {
     private void calcArgs(Player player, AdvancedCommand cmd, String[] args, List<String> argList) {
         argList = initializeArgList(argList);
         if (cmd != null) {
-            if (!playerHasPermission(player, cmd)) {
+            if(!cmd.hasPermission(player)){
                 return;
             }
             String[] arguments = getArguments(args);
@@ -186,10 +186,6 @@ public class AdvancedCommandHandler implements CommandExecutor, TabCompleter {
             argList = new ArrayList<>();
         }
         return argList;
-    }
-
-    private boolean playerHasPermission(Player player, AdvancedCommand cmd) {
-        return cmd.getPermission() != null && player.hasPermission(cmd.getPermission());
     }
 
     private String[] getArguments(String[] args) {

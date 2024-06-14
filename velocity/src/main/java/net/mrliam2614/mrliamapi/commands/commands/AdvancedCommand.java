@@ -149,6 +149,9 @@ public abstract class AdvancedCommand implements CommandInterface {
         if (permission == null) {
             return true;
         }
+        if(permission.isEmpty()){
+            return true;
+        }
         return sender.hasPermission(permission);
     }
 }

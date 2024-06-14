@@ -20,7 +20,7 @@ public interface CommandInterface extends SimpleCommand {
      */
 
     default void execute(Invocation invocation) {
-        if(invocation.source().hasPermission(getPermission()))
+        if(hasPermission(invocation))
             execute(invocation.source(), invocation.arguments());
         else
             invocation.source().sendMessage(Component.text("§4You do not have permission to use this command!"));
@@ -40,10 +40,10 @@ public interface CommandInterface extends SimpleCommand {
         if (args.length < 1) {
             for (AdvancedCommand bc : getArgs()) {
                 if (bc instanceof CommandString) {
-                    if(player.hasPermission(bc.getPermission()))
+                    if(hasPermission(player))
                         return ((CommandString) bc).tabComplete(invocation.source(), invocation.arguments());
                 }
-                if(player.hasPermission(bc.getPermission()))
+                if(hasPermission(player))
                     nextArgs.add(bc.getName());
             }
             return nextArgs;
@@ -52,7 +52,7 @@ public interface CommandInterface extends SimpleCommand {
         if (args.length == 1) {
             for (AdvancedCommand bc : getArgs()) {
                 if (bc instanceof CommandString) {
-                    if(player.hasPermission(bc.getPermission()))
+                    if(hasPermission(player))
                         return ((CommandString) bc).tabComplete(invocation.source(), invocation.arguments());
                 }
             }
@@ -63,7 +63,7 @@ public interface CommandInterface extends SimpleCommand {
         if (args.length == 1) {
             List<AdvancedCommand> allCommands = getArgs().stream().filter(c -> c.getName().contains(commandName)).collect(Collectors.toList());
             for (AdvancedCommand cmda : allCommands) {
-                if(player.hasPermission(cmda.getPermission()))
+                if(cmda.hasPermission(player))
                     nextArgs.add(cmda.getName());
             }
             return nextArgs;

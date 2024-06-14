@@ -68,7 +68,7 @@ public class AdvancedCommandHandler extends AdvancedCommand {
 
     @Override
     public void execute(CommandSource sender, String[] args) {
-        if (sender.hasPermission(getPermission())) {
+        if (hasPermission(sender)){
             if (args.length == 0) {
                 if (noArgsFunc != null)
                     noArgsFunc.execute(sender);
@@ -101,8 +101,7 @@ public class AdvancedCommandHandler extends AdvancedCommand {
      */
     private void calcCommand(CommandSource sender, AdvancedCommand cmd, String[] args, boolean isMain) {
         if (cmd != null) {
-            if (cmd.getPermission() != null && !cmd.hasPermission(sender)) {
-
+            if (!cmd.hasPermission(sender)) {
                 sender.sendMessage(Component.text(cmd.getNoPermissionMessage().replaceAll("&", "§")));
                 return;
             }
@@ -178,7 +177,7 @@ public class AdvancedCommandHandler extends AdvancedCommand {
             argList = new ArrayList<>();
         }
         if (cmd != null) {
-            if (cmd.getPermission() != null && !player.hasPermission(cmd.getPermission())) {
+            if(!cmd.hasPermission(player)) {
                 return argList;
             }
             String[] arguments = new String[args.length - 1];
@@ -270,11 +269,11 @@ public class AdvancedCommandHandler extends AdvancedCommand {
         if (args.length < 1) {
             for (AdvancedCommand bc : commandList) {
                 if (bc instanceof CommandString) {
-                    if (player.hasPermission(bc.getPermission()))
+                    if(bc.hasPermission(player))
                         return ((CommandString) bc).tabComplete(invocation.source(), invocation.arguments());
                 }
                 if (bc.isEnabledFromMain())
-                    if (player.hasPermission(bc.getPermission()))
+                    if(bc.hasPermission(player))
                         nextArgs.add(bc.getName());
             }
             return nextArgs;
@@ -283,7 +282,7 @@ public class AdvancedCommandHandler extends AdvancedCommand {
         if (args.length == 1) {
             for (AdvancedCommand bc : getArgs()) {
                 if (bc instanceof CommandString) {
-                    if (player.hasPermission(bc.getPermission()))
+                    if(bc.hasPermission(player))
                         return ((CommandString) bc).tabComplete(invocation.source(), invocation.arguments());
                 }
             }
@@ -296,7 +295,7 @@ public class AdvancedCommandHandler extends AdvancedCommand {
             List<AdvancedCommand> allCommands = commandList.stream().filter(c -> c.getName().contains(commandName)).toList();
             for (AdvancedCommand cmda : allCommands) {
                 if (cmda.isEnabledFromMain())
-                    if (player.hasPermission(cmda.getPermission()))
+                    if(cmda.hasPermission(player))
                         nextArgs.add(cmda.getName());
             }
             return nextArgs;
