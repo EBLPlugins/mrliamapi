@@ -9,6 +9,7 @@ import net.kyori.adventure.text.Component;
 import net.mrliam2614.mrliamapi.commands.commands.AdvancedCommand;
 import net.mrliam2614.mrliamapi.commands.commands.CommandString;
 import net.mrliam2614.mrliamapi.commands.commands.NoArgsFunction;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -40,17 +41,6 @@ public class AdvancedCommandHandler extends AdvancedCommand {
         setPermission(permission);
 
         this.proxy.getCommandManager().register(commandName, this, aliases);
-    }
-
-    public AdvancedCommandHandler(Logger logger, ProxyServer proxy, AdvancedCommand command) {
-        super();
-        instance = this;
-        this.logger = logger;
-        this.proxy = proxy;
-        this.commandList = new ArrayList<>();
-        setPermission(command.getPermission());
-
-        this.proxy.getCommandManager().register(command.getName(), this, command.getAliases());
     }
 
     /**
@@ -89,79 +79,6 @@ public class AdvancedCommandHandler extends AdvancedCommand {
             calcCommand(sender, cmd, args, true);
         } else {
             sender.sendMessage(Component.text("§4You do not have permission to execute this command!"));
-        }
-    }
-
-    /**
-     * Calculates the arguments for the command
-     *
-     * @param sender The sender of the command
-     * @param cmd    The command
-     * @param args   The arguments
-     */
-    private void calcCommand(CommandSource sender, AdvancedCommand cmd, String[] args, boolean isMain) {
-        if (cmd != null) {
-            if (!cmd.hasPermission(sender)) {
-                sender.sendMessage(Component.text(cmd.getNoPermissionMessage().replaceAll("&", "§")));
-                return;
-            }
-            String[] arguments;
-            if (args.length == 1) {
-                arguments = new String[0];
-            } else {
-                arguments = new String[args.length - 1];
-                System.arraycopy(args, 1, arguments, 0, args.length - 1);
-            }
-
-            AdvancedCommand nextArg = null;
-            if (arguments.length > 0) {
-                if (!cmd.getArgs().isEmpty()) {
-                    boolean found = false;
-                    for (AdvancedCommand cmdString : cmd.getArgs()) {
-                        if (cmdString instanceof CommandString) {
-                            found = true;
-
-                            List<String> tabComplete = ((CommandString) cmdString).tabComplete(sender, args);
-                            if (tabComplete == null)
-                                throw new IllegalArgumentException("BlazeCommandString cannot return null! (" + cmdString.getClass().getName() + ")!");
-
-                            for (String s : tabComplete) {
-                                if (s.equalsIgnoreCase(arguments[0])) {
-                                    if (arguments.length > 1) {
-                                        String nArg = arguments[1];
-                                        nextArg = cmdString.getArgs().stream().filter(arg -> arg.getName().equalsIgnoreCase(nArg)).findAny().orElse(null);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (!found)
-                        nextArg = cmd.getArgs().stream().filter(arg -> arg.getName().equalsIgnoreCase(arguments[0])).findAny().orElse(null);
-                }
-            }
-
-            if (nextArg != null) {
-                calcCommand(sender, nextArg, arguments, false);
-            } else {
-                if (!cmd.isAcceptArgs() && arguments.length > 0) {
-                    sender.sendMessage(Component.text(cmd.getUsage().replaceAll("&", "§")));
-                    return;
-                }
-                if (cmd.isRequireArgs() && arguments.length == 0) {
-                    sender.sendMessage(Component.text(cmd.getUsage().replaceAll("&", "§")));
-                    return;
-                }
-
-                if (isMain) {
-                    if (cmd.isEnabledFromMain())
-                        cmd.execute(sender, arguments);
-                    else
-                        sender.sendMessage(Component.text(cmd.getUsage().replaceAll("&", "§")));
-                } else {
-                    cmd.execute(sender, arguments);
-                }
-            }
         }
     }
 
