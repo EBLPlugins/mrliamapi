@@ -46,15 +46,11 @@ public class AdvancedCommandHandler extends AdvancedCommand {
      *                This will register the command and all of its aliases
      */
     public void registerCommand(AdvancedCommand command) {
-        commandList.add(command);
-        if (command.getAliases().length > 0) {
-            String[] subAliases = new String[command.getAliases().length - 1];
-            System.arraycopy(command.getAliases(), 1, subAliases, 0, command.getAliases().length - 1);
-
-            this.proxy.getCommandManager().register(command.getAliases()[0], command, subAliases);
-        }
-        if (command.isEnabledFromMain()) {
+        this.commandList.add(command);
+        if(command.isEnabledFromMain()){
             this.addArg(command);
+        }else{
+            this.proxy.getCommandManager().register(command.getName(), this, command.getAliases());
         }
     }
 
