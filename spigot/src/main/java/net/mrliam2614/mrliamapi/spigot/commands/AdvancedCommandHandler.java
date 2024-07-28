@@ -11,6 +11,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import java.util.logging.Level;
 
 public class AdvancedCommandHandler implements CommandExecutor, TabCompleter {
     private List<AdvancedCommand> commandList;
+    private PluginCommand mainCommand;
 
     @Setter
     private NoArgsFunction noArgsFunc;
@@ -34,6 +36,7 @@ public class AdvancedCommandHandler implements CommandExecutor, TabCompleter {
         if(cmd == null) {
             throw new IllegalArgumentException("Command " + command + " does not exist in plugin.yml!");
         }
+        mainCommand = cmd;
         cmd.setExecutor(this);
         cmd.setTabCompleter(this);
     }
@@ -51,7 +54,7 @@ public class AdvancedCommandHandler implements CommandExecutor, TabCompleter {
                 bukkitCommandMap.setAccessible(true);
                 CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
 
-                commandMap.register("seen", new BukkitCommand(alias, command));
+                commandMap.register(mainCommand.getName(), new BukkitCommand(alias, command));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
