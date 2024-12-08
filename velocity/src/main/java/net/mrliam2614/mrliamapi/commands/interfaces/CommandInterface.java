@@ -9,6 +9,7 @@ import net.mrliam2614.mrliamapi.commands.commands.AdvancedCommand;
 import net.mrliam2614.mrliamapi.commands.commands.CommandString;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,9 +61,9 @@ public interface CommandInterface extends SimpleCommand {
      *
      * @param sender The sender of the command
      * @param cmd    The command
-     * @param args   The arguments
+     * @param currentArgs   The arguments
      */
-    default void calcCommand(CommandSource sender, AdvancedCommand cmd, String[] args, boolean isMain) {
+    default void calcCommand(CommandSource sender, AdvancedCommand cmd, String[] currentArgs, boolean isMain) {
         if (cmd == null) {
             sender.sendMessage(Component.text(cmd.getUsage().replaceAll("&", "§")));
             return;
@@ -73,17 +74,17 @@ public interface CommandInterface extends SimpleCommand {
             return;
         }
 
-        String[] arguments;
-        if (args.length <= 1) {
-            arguments = new String[0];
+        String[] nextArgs;
+        if (currentArgs.length <= 1) {
+            nextArgs = new String[0];
         } else {
-            arguments = new String[args.length - 1];
-            System.arraycopy(args, 1, arguments, 0, args.length - 1);
+            nextArgs = new String[currentArgs.length - 1];
+            System.arraycopy(currentArgs, 1, nextArgs, 0, currentArgs.length - 1);
         }
         AdvancedCommand commandArg = null;
-        if (arguments.length > 0) {
+        if (nextArgs.length > 0) {
             if (cmd.getArgs().isEmpty()){
-                cmd.execute(sender, arguments);
+                cmd.execute(sender, nextArgs);
             }
 
             boolean found = false;
@@ -92,14 +93,14 @@ public interface CommandInterface extends SimpleCommand {
 
                 found = true;
 
-                List<String> tabComplete = ((CommandString) stringCommand).tabComplete(sender, args);
+                List<String> tabComplete = ((CommandString) stringCommand).tabComplete(sender, currentArgs);
                 if (tabComplete == null)
                     throw new IllegalArgumentException("BlazeCommandString cannot return null! (" + stringCommand.getClass().getName() + ")!");
 
                 for (String s : tabComplete) {
-                    if (s.equalsIgnoreCase(arguments[0])) {
-                        if (arguments.length > 1) {
-                            String nArg = arguments[1];
+                    if (s.equalsIgnoreCase(nextArgs[0])) {
+                        if (nextArgs.length > 1) {
+                            String nArg = nextArgs[1];
                             commandArg = stringCommand.getArgs().stream().filter(arg -> arg.getName().equalsIgnoreCase(nArg)).findAny().orElse(null);
                         }
                     }
@@ -107,28 +108,31 @@ public interface CommandInterface extends SimpleCommand {
             }
 
             if (!found)
-                commandArg = cmd.getArgs().stream().filter(arg -> arg.getName().equalsIgnoreCase(arguments[0])).findAny().orElse(null);
+                commandArg = cmd.getArgs().stream().filter(arg -> arg.getName().equalsIgnoreCase(currentArgs[0])).findAny().orElse(null);
         }
 
         if (commandArg != null) {
-            calcCommand(sender, commandArg, arguments, false);
+            calcCommand(sender, commandArg, nextArgs, false);
         } else {
-            if (!cmd.isAcceptArgs() && arguments.length > 0) {
+            if (!cmd.isAcceptArgs() && nextArgs.length > 0) {
                 sender.sendMessage(Component.text(cmd.getUsage().replaceAll("&", "§")));
+                sender.sendMessage(Component.text("&c&lNo &carguments accepted".replaceAll("&", "§")));
                 return;
             }
-            if (cmd.isRequireArgs() && arguments.length == 0) {
+            if (cmd.isRequireArgs() && nextArgs.length == 0) {
                 sender.sendMessage(Component.text(cmd.getUsage().replaceAll("&", "§")));
+                sender.sendMessage(Component.text("&c&lNo &carguments found".replaceAll("&", "§")));
                 return;
             }
 
             if (isMain) {
                 if (cmd.isEnabledFromMain()) {
-                    cmd.execute(sender, args);
-                } else
+                    cmd.execute(sender, currentArgs);
+                } else {
                     sender.sendMessage(Component.text(cmd.getUsage().replaceAll("&", "§")));
+                }
             } else {
-                cmd.execute(sender, args);
+                cmd.execute(sender, currentArgs);
             }
         }
     }
