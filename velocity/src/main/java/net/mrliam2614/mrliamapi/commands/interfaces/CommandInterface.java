@@ -56,6 +56,13 @@ public interface CommandInterface extends SimpleCommand {
     }
 
 
+    default void sendUsage(CommandSource commandSource){
+        commandSource.sendMessage(Component.text(getUsage().replaceAll("&", "§")));
+    }
+
+    default void sendCustomMessage(CommandSource commandSource, String message){
+        commandSource.sendMessage(Component.text(message.replaceAll("&", "§")));
+    }
     /**
      * Calculates the arguments for the command
      *

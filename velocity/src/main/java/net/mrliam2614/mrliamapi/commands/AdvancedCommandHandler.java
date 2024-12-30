@@ -1,5 +1,6 @@
 package net.mrliam2614.mrliamapi.commands;
 
+import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -9,7 +10,6 @@ import net.kyori.adventure.text.Component;
 import net.mrliam2614.mrliamapi.commands.commands.AdvancedCommand;
 import net.mrliam2614.mrliamapi.commands.commands.CommandString;
 import net.mrliam2614.mrliamapi.commands.commands.NoArgsFunction;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -49,10 +49,24 @@ public class AdvancedCommandHandler extends AdvancedCommand {
      */
     public void registerCommand(AdvancedCommand command) {
         commandList.add(command);
+        unregisterCommand(command);
         if(command.isEnabledFromMain()){
             this.addArg(command);
         }else{
             this.proxy.getCommandManager().register(command.getName(), command, command.getAliases());
+        }
+    }
+
+    private void unregisterCommand(AdvancedCommand command) {
+        unregisterCommand(command.getName());
+        for (String alias : command.getAliases())
+            unregisterCommand(alias);
+    }
+
+    private void unregisterCommand(String commandName) {
+        CommandManager commandManager = this.proxy.getCommandManager();
+        if (commandManager.hasCommand(commandName)) {
+            commandManager.unregister(commandName);
         }
     }
 
