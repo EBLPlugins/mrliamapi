@@ -4,6 +4,8 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.mrliam2614.mrliamapi.commands.AdvancedCommandHandler;
 import net.mrliam2614.mrliamapi.commands.commands.AdvancedCommand;
 import net.mrliam2614.mrliamapi.commands.commands.CommandString;
@@ -41,7 +43,7 @@ public interface CommandInterface extends SimpleCommand {
 
             if (!(sender instanceof Player)) {
                 if (cmd.isOnlyPlayers()) {
-                    sender.sendMessage(Component.text("§4Only players can execute this command!"));
+                    sender.sendMessage(MiniMessage.miniMessage().deserialize("<dark_red>Only players can execute this command!"));
                     return;
                 }
             }
@@ -51,17 +53,17 @@ public interface CommandInterface extends SimpleCommand {
 
             calcCommand(sender, cmd, newArgs, false);
         } else {
-            sender.sendMessage(Component.text("§4You do not have permission to execute this command!"));
+            sender.sendMessage(MiniMessage.miniMessage().deserialize("<dark_red>You do not have permission to execute this command!"));
         }
     }
 
 
     default void sendUsage(CommandSource commandSource){
-        commandSource.sendMessage(Component.text(getUsage().replaceAll("&", "§")));
+        commandSource.sendMessage(LegacyComponentSerializer.legacy('&').deserialize(getUsage()));
     }
 
     default void sendCustomMessage(CommandSource commandSource, String message){
-        commandSource.sendMessage(Component.text(message.replaceAll("&", "§")));
+        commandSource.sendMessage(LegacyComponentSerializer.legacy('&').deserialize(message));
     }
     /**
      * Calculates the arguments for the command
@@ -72,12 +74,12 @@ public interface CommandInterface extends SimpleCommand {
      */
     default void calcCommand(CommandSource sender, AdvancedCommand cmd, String[] currentArgs, boolean isMain) {
         if (cmd == null) {
-            sender.sendMessage(Component.text(cmd.getUsage().replaceAll("&", "§")));
+            sender.sendMessage(LegacyComponentSerializer.legacy('&').deserialize(cmd.getUsage()));
             return;
         }
 
         if (!cmd.hasPermission(sender)) {
-            sender.sendMessage(Component.text(cmd.getNoPermissionMessage().replaceAll("&", "§")));
+            sender.sendMessage(LegacyComponentSerializer.legacy('&').deserialize(cmd.getNoPermissionMessage()));
             return;
         }
 
@@ -122,13 +124,13 @@ public interface CommandInterface extends SimpleCommand {
             calcCommand(sender, commandArg, nextArgs, false);
         } else {
             if (!cmd.isAcceptArgs() && nextArgs.length > 0) {
-                sender.sendMessage(Component.text(cmd.getUsage().replaceAll("&", "§")));
-                sender.sendMessage(Component.text("&c&lNo &carguments accepted".replaceAll("&", "§")));
+                sender.sendMessage(LegacyComponentSerializer.legacy('&').deserialize(cmd.getUsage()));
+                sender.sendMessage(MiniMessage.miniMessage().deserialize("<red><bold>No </bold>arguments accepted"));
                 return;
             }
             if (cmd.isRequireArgs() && nextArgs.length == 0) {
-                sender.sendMessage(Component.text(cmd.getUsage().replaceAll("&", "§")));
-                sender.sendMessage(Component.text("&c&lNo &carguments found".replaceAll("&", "§")));
+                sender.sendMessage(LegacyComponentSerializer.legacy('&').deserialize(cmd.getUsage()));
+                sender.sendMessage(MiniMessage.miniMessage().deserialize("<red><bold>No </bold>>arguments found"));
                 return;
             }
 
@@ -136,7 +138,7 @@ public interface CommandInterface extends SimpleCommand {
                 if (cmd.isEnabledFromMain()) {
                     cmd.execute(sender, currentArgs);
                 } else {
-                    sender.sendMessage(Component.text(cmd.getUsage().replaceAll("&", "§")));
+                    sender.sendMessage(LegacyComponentSerializer.legacy('&').deserialize(cmd.getUsage()));
                 }
             } else {
                 cmd.execute(sender, currentArgs);
