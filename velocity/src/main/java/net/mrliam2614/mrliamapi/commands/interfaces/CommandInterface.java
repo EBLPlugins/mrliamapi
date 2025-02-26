@@ -4,6 +4,8 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.mrliam2614.mrliamapi.commands.AdvancedCommandHandler;
@@ -64,6 +66,14 @@ public interface CommandInterface extends SimpleCommand {
 
     default void sendCustomMessage(CommandSource commandSource, String message){
         commandSource.sendMessage(LegacyComponentSerializer.legacy('&').deserialize(message));
+    }
+
+    default void sendCustomMessage(CommandSource commandSource, String message, HoverEvent<?> hoverEvent){
+        commandSource.sendMessage(LegacyComponentSerializer.legacy('&').deserialize(message).hoverEvent(hoverEvent));
+    }
+
+    default void sendCustomMessage(CommandSource commandSource, String message, HoverEvent<?> hoverEvent, ClickEvent clickEvent){
+        commandSource.sendMessage(LegacyComponentSerializer.legacy('&').deserialize(message).hoverEvent(hoverEvent).clickEvent(clickEvent));
     }
     /**
      * Calculates the arguments for the command
